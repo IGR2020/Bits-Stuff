@@ -9,7 +9,7 @@ run = True
 clock = pg.time.Clock()
 fps = 60
 
-player = CorePlayer(100, 200, "Ship", scale=3)
+player = CorePlayer(100, 200, "Ship", scale=2)
 objects = [Object(0, 0, "Plank", 3, 90), Object(360, 0, "Plank", 3, 135)]
 
 x_offset, y_offset = 0, 0
