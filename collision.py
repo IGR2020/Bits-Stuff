@@ -103,7 +103,7 @@ class Object(CoreObject):
 
 
 class Player(CorePlayer):
-    "NOTE: This class does not collide well, use CorePlayer instead"
+    "A player which follows the mouse."
     angle = 0
     speed = 0
     acceleration = 0.3
