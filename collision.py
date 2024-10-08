@@ -109,18 +109,47 @@ class Player(CorePlayer):
     acceleration = 0.3
     rotateSpeed = 10
 
-    def __init__(self, x: int, y: int, name: str, correctionAngle: int = 0, scale: int = 1, angle: int = 0) -> None:
-        """IMPORTANT NOTE: the correction angle should make it so that when the
-        object is rotated by that amount it faces up."""
+    def __init__(self, x: int, y: int, name: str, hitbox: pg.Rect | pg.Surface, correctionAngle: int = 0, scale: int = 1, angle: int = 0) -> None:
+        """correctionAngle -> should make it so that when the
+        object is rotated by that amount it faces up.\n
+        hitbox -> either a image or a rect which is relative to the x and y,
+        the hitbox will scale automaticaly"""
+        # code order fix
+        self.hitbox = None
+
         super().__init__(x, y, name, scale, angle)
         self.correctionAngle = correctionAngle
+        
+        # stable collision
+        if isinstance(hitbox, pg.Surface):
+            self.mask = pg.mask.from_surface(hitbox)
+        else:
+            hitbox.x *= scale
+            hitbox.y *= scale
+            hitbox.width *= scale
+            hitbox.height *= scale
+            image = pg.Surface((self.rect.width, self.rect.height)).convert_alpha()
+            image.fill((0, 0, 0, 0))
+            image.fill((255, 255, 255, 255), hitbox)
+            self.mask = pg.mask.from_surface(image)
+        self.hitbox: pg.mask.Mask = self.mask
+
+    def reload(self) -> None:
+        super().reload()
+        self.mask = self.hitbox  
+
+    def rotate(self) -> None:
+        tempRect = self.rect
+        super().rotate()
+        self.mask = self.hitbox
+        self.rect = tempRect    
 
     def setXYFromSpeed(self):
         radians = math.radians(self.angle - self.correctionAngle - 180)
         self.x_vel = math.sin(radians) * self.speed
         self.y_vel = math.cos(radians) * self.speed
 
-    def script(self, x_offset: int = 0, y_offset: int = 0, lockRotation=False):
+    def script(self, x_offset: int = 0, y_offset: int = 0):
 
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
@@ -137,14 +166,13 @@ class Player(CorePlayer):
         mouseX += x_offset
         mouseY += y_offset
 
-        if not lockRotation:
-            # distance from mouse
-            dx, dy = (
-                mouseX - self.rect.centerx,
-                self.rect.centery - mouseY,
-            )
+        # distance from mouse
+        dx, dy = (
+            mouseX - self.rect.centerx,
+            self.rect.centery - mouseY,
+        )
 
-            self.angle = math.degrees(math.atan2(dy, dx)) - self.correctionAngle - 90
+        self.angle = math.degrees(math.atan2(dy, dx)) - self.correctionAngle - 90
 
         self.rotate()
 
